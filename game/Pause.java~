@@ -1,0 +1,128 @@
+package game;
+import javax.swing.*;
+import java.awt.event.*;
+import window.*;
+import java.awt.Font;
+import java.awt.Color;
+
+/**
+ * This class is used to pause the game and show a menu (resume, restart or return to main menu).
+ * Features of version 2.0:
+ * Displays a title, stops all movement on the screen and displays menu options. Whole class was created.
+ * Time spent: 1 hour.
+ * @author Salar Hosseini
+ * @version 5.0, June 12, 2014
+ */
+public class Pause extends JPanel implements ActionListener, KeyListener
+{
+  /**
+   * This object reference to GameFrame is used store the GameFrame that will contain this panel.
+   */
+  private GameFrame frame;
+  
+  /**
+   * This constuctor is used to set the layout of the screen as well as create all the buttons for the in game menu options.
+   * It will center everything using SpringLayout.
+   * @param frame This object reference variable to GameFrame is used to store the GameFrame that will hold this panel.
+   * @param layout This object reference variable to SpringLayout is used to set the layout type.
+   * @param title This object reference variable to JLabel is used to create the title.
+   * @param resume This object reference variable to JButton is used to create the resume button.
+   * @param restart This object reference variable to JButton is used to create the restart button.
+   * @param exit This object reference variable to JButton is used to create the exit to main menu button.
+   */
+  public Pause (GameFrame frame)
+  {
+    setLayout (GamePanel.layout);
+    
+    this.frame = frame;
+    
+    JLabel title = new JLabel ("In Game Menu");
+    title.setFont (new Font ("Agency FB", Font.BOLD, 55));
+    GamePanel.layout.putConstraint (SpringLayout.NORTH, title, 30, SpringLayout.NORTH, this);
+    GamePanel.layout.putConstraint (SpringLayout.HORIZONTAL_CENTER, title, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    title.setForeground (Color.WHITE);
+    add (title);
+    
+    JButton resume = new JButton ("Resume");
+    JButton restart = new JButton ("Restart");
+    JButton exit = new JButton ("Exit To Main Menu");
+    resume.addActionListener (this);
+    restart.addActionListener (this);
+    exit.addActionListener (this);
+    GamePanel.layout.putConstraint (SpringLayout.NORTH, resume, 150, SpringLayout.NORTH, this);
+    GamePanel.layout.putConstraint (SpringLayout.HORIZONTAL_CENTER, resume, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    GamePanel.layout.putConstraint (SpringLayout.NORTH, restart, 300, SpringLayout.NORTH, this);
+    GamePanel.layout.putConstraint (SpringLayout.HORIZONTAL_CENTER, restart, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    GamePanel.layout.putConstraint (SpringLayout.NORTH, exit, 450, SpringLayout.NORTH, this);
+    GamePanel.layout.putConstraint (SpringLayout.HORIZONTAL_CENTER, exit, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    GamePanel.setButtonCool (resume, 30);
+    GamePanel.setButtonCool (restart, 30);
+    GamePanel.setButtonCool (exit, 30);
+    
+    JLabel resumeCtrl = new JLabel ("Ctrl-D");
+    JLabel restartCtrl = new JLabel ("Ctrl-R");
+    JLabel exitCtrl = new JLabel ("Ctrl-M");
+    GamePanel.setLabelCool (resumeCtrl, 20, 200, this, false);
+    GamePanel.setLabelCool (restartCtrl, 20, 350, this, false);
+    GamePanel.setLabelCool (exitCtrl, 20, 500, this, false);
+    
+    add (resume);
+    frame.getRootPane (). setDefaultButton (resume);
+    add (restart);
+    add (exit);
+    add (GamePanel.imageLoader ("./game/gameback.jpeg"));
+    
+    setFocusable (true);
+    addKeyListener (this);
+    requestFocusInWindow ();
+  }
+  
+  /*
+   * This method is used to reset how much the pathogen should move, when the key has been released.
+   * @param e This object reference to KeyEvent is used to get keyboard events.
+   */
+  public void keyReleased (KeyEvent e)
+  {
+  }
+  
+  /**
+   * This method overrides the method in KeyListener, to do nothing. 
+   * @param e This object reference variable to KeyEvent is used to detect actions when a key is typed, but it is not used in this method which is used to do nothing.
+   */
+  public void keyTyped (KeyEvent e)
+  {}
+  
+  public void keyPressed (KeyEvent e)
+  {
+    if (e.getKeyChar () == 4) //control d
+      frame.donePause (true);
+    else if (e.getKeyChar () == 18)  //control r
+      frame.restart (true);
+    else 
+    {
+      if (e.getKeyChar () == 13)  //control m
+      {
+        frame.donePause (false);
+        frame.doneGame ();
+      }
+    }
+  }
+  
+  /**
+   * This method is used to determine what should be done depending on what button was pressed. 
+   * The if structure is used to determine what should run depending on what button the user has pressed.
+   * @param ae This object reference variable to ActionEvent is used to get the action done.
+   */
+  public void actionPerformed (ActionEvent ae)
+  {
+    if (ae.getActionCommand (). equals ("Resume"))
+      frame.donePause (true);
+    else if (ae.getActionCommand (). equals ("Restart"))
+      frame.restart (true);
+    else 
+    {
+      frame.donePause (false);
+      frame.doneGame ();
+    }
+  }
+}

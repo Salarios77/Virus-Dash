@@ -1,0 +1,77 @@
+public class GameInfo
+{
+  /**
+   * This object reference variable to String is used to store the name of the user playing.
+   */
+  private String name = "";
+  /**
+   * This integer is used to store the difficulty that the user selects.
+   */
+  private int difficulty = 0;
+  /**
+   * This integer is used to store the level that the user selects.
+   */
+  private int level = 0;
+  boolean shouldTeach = true;
+  boolean shouldTeachWbc = true;
+  
+  
+  public GameInfo (String name, int difficulty, int level, boolean shouldTeach, boolean shouldTeachWbc)
+  {
+    this.name = name;
+    this.difficulty = difficulty;
+    this.level = level;
+    this.shouldTeach = shouldTeach;
+    this.shouldTeachWbc = shouldTeachWbc;
+  }
+  
+  public String getName ()
+  {
+    return name;
+  }
+  
+  public int getDifficulty ()
+  {
+    return difficulty;
+  }
+  
+  public int getLevel ()
+  {
+    return level;
+  }
+  
+  public boolean getShouldTeach ()
+  {
+    return shouldTeach;
+  }
+  
+  public boolean getShouldTeachWbc ()
+  {
+    return shouldTeachWbc;
+  }
+  
+  public void setName (String name)
+  {
+    this.name = name;
+  }
+  
+  public void setDifficulty (int difficulty)
+  {
+    this.difficulty = difficulty;
+  }
+  
+  public void setLevel (int level)
+  {
+    this.level = level;
+  }
+  
+  public void setShouldTeach (boolean shouldTeach)
+  {
+    this.shouldTeach = shouldTeach;
+  }
+  
+  public void setShouldTeachWbc (boolean shouldTeachWbc)
+  {
+    this.shouldTeachWbc = shouldTeachWbc;
+  }
+}

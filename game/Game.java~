@@ -1,0 +1,685 @@
+package game;
+import javax.imageio.*;
+import java.io.*;
+import java.awt.image.*;
+import java.awt.event.*;
+import java.awt.*;
+import javax.swing.*;
+import levels.*;
+import cell.*;
+import window.*;
+import java.util.ArrayList;
+import highscores.*;
+
+/**
+ * This class will create the panel used for the actual game play.
+ * Features of version 2.0: <br>
+ * Moving pathogen using the WASD keys, with a background. <br>
+ * Hours spent on this class: 3 hour.
+ * Features of version 3.0: <br>
+ * Antibodies are drawn as they fall down towards the pathogen.
+ * Progress bar shows the user how close they are to the targeted cell.
+ * When the pathogen comes in contact with the antibody, it will lose health and push the antibody away.
+ * The pathogen is also error trapped to be unable to move past a certain part of the screen.
+ * Damage taken when pathogen comes in contact with antibodies, and progress bar shows how close you are to the targeted cell.
+ * Screen displaying the result (whether you won or lost), as well as the option to continue to the next level, or return to main menu. <br>
+ * Hours spent on this class (additive to previous version): 7 hours.
+ * Features of version 4.0: <br>
+ * A boss will be animated at the end of each level. Also, some features of this class have been moved to other classes for more optimal coding.
+ * Specific graphics for each level have also been added (including showing that immunity has increased, and an ammunition bar 
+ * displaying how many bullets the user can fire, and the cool down for the spawn of the bullets).
+ * Hours spent on this class (additive to previous version): 5 hours.
+ * Features of version 5.0: <br>
+ * Teaching was added (the educational portion of the game) -- displayPane method.
+ * Time spent on this class: 7.5 hours (additive to previous versions).
+ * @author Salar Hosseini & Sophia Weng
+ * @version 5.0, June 12, 2014
+ */
+public class Game extends JPanel implements KeyListener, ActionListener, MouseListener
+{
+  /**
+   * This object reference variable to Level is used to store the level that the user is to play. 
+   */
+  private Level level;
+  /**
+   * This object reference variable to Pathogen is used to create the pathogen that the user is to control.
+   */
+  private Pathogen pathogen;
+  /**
+   * This object reference variable to BufferedImage is used to load the pathogen image.
+   */
+  private BufferedImage pathogenPic;
+  /**
+   * This object reference variable to BufferedImage is used to load the background of the game.
+   */
+  private BufferedImage background;
+  /**
+   * This object reference variable to Timer is used to create a new Timer that will be used to call the actionPerformed method every 3 milliseconds (so that the movement animation is smoother).
+   */
+  private Timer tm = new Timer (5, this);
+  /**
+   * This object reference variable to GameFrame is used to control the panels within the frame.
+   */
+  private GameFrame frame;
+  /**
+   * This object reference variable to BufferedImage is used to reference the image of a white blood cell. 
+   */
+  private BufferedImage whiteBloodCell;
+  /**
+   * This object reference variable to BufferedImage is used to reference the image of the health bar.
+   */
+  private BufferedImage healthBar;
+  /**
+   * This object reference variable to BufferedImage is used to reference the image of the progress bar.
+   */
+  private BufferedImage progressBar;
+  /**
+   * This object reference variable to an integer array list is used to store the location of the tracker circles on the progress bar.
+   */
+  private ArrayList <Integer> circles = new ArrayList <Integer> ();
+  /**
+   * This integer is used to determine when the progress bar should be incrased.
+   */
+  private int counter;
+  /**
+   * This object reference variable to BufferedImage is used to create the image of a tiny version of the pathogen, depending on the level. 
+   */
+  private BufferedImage miny;
+  /**
+   * This object reference variable to BufferedImage is used to create the image of the boss.
+   */
+  private BufferedImage boss;
+  /**
+   * This object reference variable to BufferedImage is used to create the image of the targetted cell.
+   */
+  private BufferedImage targetPic;
+  /**
+   * This object reference variable to BufferedImage is used to create the image of an ammunition bar (for level 2).
+   */
+  private BufferedImage ammoBar;
+  /**
+   * This integer is used to determine whether or not the boss has been animated in a certain way yet, to determine what should be displayed next.
+   */
+  private int bossAnimationCounter;
+  /**
+   * This integer is used to determine how long the "IMMUNITY INCREASED" should be displayed.
+   */
+  private int immunityCounter;
+  /**
+   * This integer is used to store the score of the user.
+   */ 
+  int score;
+  /**
+   * This object reference variable to String is used to store the name of the difficulty that the user is playing on.
+   */ 
+  String difficultyName;
+  /**
+   * This double is used to store the difficulty rate of the level, which in turn will increase the spawn of white blood cells.
+   */ 
+  double difficultyFactor;
+  /**
+   * This object reference varialbe to BufferedImage is used to create the image displaying where everything is on the screen and what it means to the user.
+   */
+  BufferedImage controls;
+  /**
+   * This boolean is used to determine whether or not the game play has started.
+   */
+  boolean hasStarted;
+  /**
+   * This button is used to remove the controls display and indicate that the user is ready to play the game. 
+   */
+  JButton ok;
+  /**
+   * This integer is used to store the time that has passed (and will be used to display the teaching 
+   */
+  int time;
+
+  
+  /**
+   * This constructor is used to create the game, store the frame that it will be contained in, set the level, difficulty and the username. 
+   * It will also store the images of the pathogen the user will control, and the background, as well as any level specific images that need to be loaded.
+   * The try block is used to catch any IOExceptions that may occur when reading and storing the images for the game.
+   * The if structure is used to determine which pictures should be loaded, and which pathogen and level is to be used based on the level selection of the user.
+   * @param frame This object reference to GameFrame is used to store the frame that will display the game.
+   */
+  public Game (GameFrame frame)
+  {
+    this.frame = frame;
+    
+    if (frame.getGameInfo ().getDifficulty () == 1)
+    {
+      difficultyName = "Easy";
+      difficultyFactor = 2.0;
+    }
+    else if (frame.getGameInfo ().getDifficulty () == 2)
+    {
+      difficultyName = "Normal";
+      difficultyFactor = 2.5;
+    }
+    else
+    {
+      difficultyName = "Hard";
+      difficultyFactor = 3;
+    }
+    
+    try 
+    {
+      if (frame.getGameInfo ().getLevel () == 1)
+      {
+        pathogen = new Virus ();
+        this.level = new Level1 (pathogen, frame.getGameInfo ());
+        pathogenPic = ImageIO.read(new File("misc/transinfluenza.png"));
+        controls = ImageIO.read (new File ("misc/controls1.png"));
+        difficultyFactor += 1;
+      }
+      else if (frame.getGameInfo ().getLevel () == 2)
+      {
+        pathogen = new Bacteria ();
+        this.level = new Level2( pathogen, frame.getGameInfo ());
+        pathogenPic = ImageIO.read(new File("misc/translisteriabacteria.png"));
+        ammoBar = ImageIO.read (new File("misc/ammo.png"));
+        miny = ImageIO.read(new File("misc/translisteriabacteria2.png"));
+        addMouseListener (this);
+        difficultyFactor += 0.75;
+        controls = ImageIO.read (new File ("misc/controls2.png"));
+      }
+      else
+      {
+        pathogen = new Parasite ();
+        this.level = new Level3(pathogen, frame.getGameInfo ());
+        pathogenPic = ImageIO.read(new File("misc/malaria2.png"));
+        miny = ImageIO.read(new File("misc/minymalaria.png"));
+        controls = ImageIO.read (new File ("misc/controls3.png"));
+      }
+      addKeyListener (this);
+      
+      background = ImageIO.read(new File("misc/gameback.jpeg"));
+      whiteBloodCell = ImageIO.read(new File("misc/WhiteBloodCell.png"));
+      healthBar = ImageIO.read (new File("misc/shealthbar.png"));
+      progressBar = ImageIO.read (new File("misc/sbar2.0.png"));
+      boss = ImageIO.read (new File("misc/boss.png"));
+      targetPic = ImageIO.read (new File("misc/target.png"));
+    }
+    catch (IOException e)
+    {
+      e.printStackTrace ();
+    }
+    this.level.setHasWon (0); //must be here for re-playing the game, or won't work.
+    
+    ok = new JButton ("Ok");
+    setLayout (GamePanel.layout);
+    GamePanel.setButtonCool (ok, 30);
+    GamePanel.layout.putConstraint (SpringLayout.NORTH, ok, 270, SpringLayout.NORTH, this);
+    GamePanel.layout.putConstraint (SpringLayout.HORIZONTAL_CENTER, ok, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    add (ok);
+    ok.addActionListener (this);
+  }
+  
+  /**
+   * This method is used to determine which direction the pathogen will move in, depending on the key they pressed.
+   * The if statements are used to determine if they user pressed W, A, S, D, or P key. If they pressed one of the WASD keys, the 
+   * yVel or xVel will change accordingly. If they pressed P, the in game will pause.
+   * @param e This object reference variable to KeyEvent is used to get keyboard input.
+   */
+  public void keyPressed (KeyEvent e)
+  {
+    if ((e.getKeyChar() == 'p' || e.getKeyChar () == 'P'))
+    {
+      tm.stop ();
+      pathogen.pause ();
+      frame.pause ();
+    }
+    else
+    {
+      if ((e.getKeyChar()== 'w' || e.getKeyChar() == 'W'))
+        pathogen.setYVel (-2);
+      if ((e.getKeyChar() == 's' || e.getKeyChar() == 'S'))
+        pathogen.setYVel (2);
+      if ((e.getKeyChar() == 'a' || e.getKeyChar() == 'A'))
+        pathogen.setXVel (-2);
+      if ((e.getKeyChar() == 'd' || e.getKeyChar () == 'D'))
+        pathogen.setXVel (2); 
+    }
+  }
+  
+  /**
+   * This helper method is used to display the teaching messages of the game.
+   * The first if structure is used to check which type of message is supposed to be displayed (about what - the pathogen, infecting, or the white blood cells).
+   * The first nested if structure is used to check which level the user is playing on. Depending on which level they play on, a specific message is given.
+   * The second nested if structure is also used to check which level the user is playing on. Depending on which level they play on, a specific message is given.
+   * @param type This integer is used to store a number that represents which teaching message should be displayed.
+   * @param info This object reference variable to String is used to store the information that will be displayed on the message.
+   * @param title This object reference variable to String is used to store the title that will be displayed on the message.
+   */ 
+  private void displayPane (int type)
+  {
+    pathogen.setXVel (0);
+    pathogen.setYVel (0);
+    String info, title;
+    if (type ==1) //pathogen msg
+    {
+      if (level instanceof Level1)
+      {
+        info = "This is you (the blue round ball like thing, with the stuff sticking out), an influenza virus. <br> <Br>Generally, you would cause chills, fever, a runny nose, sore throat, headaches, coughing - the list goes on. You're usually confused with the common cold, but you would actually cause what is referred to the flu. <br><br>Influenza replicates by getting ''swallowed'' by a cell in the body, and then the virus cell basically makes mini replicates of itself and releases them from the cell that ''swallowed'' it.";
+        title = "Influenza Virus";
+      }
+      else if (level instanceof Level2)
+      {
+        info = "This is you (that green almost rod like thing with ribbons at the end), a listeria virus. <br><br>This bacterium can cause fever, stiff necks, confusion, weakness vomiting and more, for days or even weeks. <br><br>Listeria reproduce in the mother cells, where they form until they are big enough, when the mother cell basically explodes and releases all the daughter cells. The daughters have the same genetic makeup as the mother cell.";
+        title = "Listeria Bacteria";
+      }
+      else
+      {
+        info ="This is you (that orange round ball like thing), a malaria parasite called Plasmodium. <br><br>Some symptoms include fever, headache, and vomiting. The symptoms generally appear 10-15 days after the patient was bitten. Left untreated, malaria will become life-treatening, as it messes up the blood flow to major organs. <br><br>(Not so) fun fact: In many places in the world, these parasites have actually developed resistance to many malaria medicines.";
+        title = "Malaria Parasite";
+      }
+    }
+    else if (type == 3) //how it infects
+    {
+      if (level instanceof Level1)
+      {
+        info = "Influenza is generally spread through the air, by infected particles that come from coughts of sneezes of infected people. It can also be transferred by contact of stuff that comes of your nose (how nice is that?) or bird droppings (and this one is even better!). Infected particles can also rest on surfaces, such as handles. <br><br>This virus is inactivated by the sun, disinfectants and detergents. People are contagious before they have symptoms, as an infected person would begin spreading new virus bits the day before symptoms develop. They will continue to be contagious for around 5-7 days.";
+        title = "Infection (Influenza Virus)";
+      }
+      else if (level instanceof Level2)
+      {
+        info = "Listeria is generally a food borne illness, which can survive refrigeration, and even freezing. They are usually found on uncooked foods such as, ?graw?h milk, ready-to-eat deli meats or hot dogs, in soil, water, sewage and in droppings (humans and animals). <br><br>This bacterium can infect many different sites, such as the brain, spinal cord membranes or the bloodstream. (In this game, you are in the bloodstream).";
+        title = "Infection (Listeria Bacteria)";
+      }
+      else
+      {
+        info = "Plasmodium is transferred by bites of infected mosquitoes, which transfers the parasite to the liver (in humans at least), where they multiply for about a week, and then infect red blood cells. In the red blood cells, they multiply until the infected cell explodes. And then this just goes on and on and on. Isn?ft that a nice way to infect something? (In this game you will just be trying to infect a targeted cell, rather than a bunch of red blood cells.)";
+        title = "Infection (Malaria Parasite)";
+      }
+    }
+    else //wbc msg
+    {
+      info = "Those are white blood cell, also known as a leukocyte (that fuzzy looking white thing). <br><br>They are a part of the immune system, and protect our bodies from infections. <br><br>Fun fact: in the average adult body there are 4 000 to 10 000 white blood cells per microliter of blood. This number increases when there's a sign of infection in your body. You know how many WBCs that is? A lot.";
+      title = "White Blood Cell";
+    }
+    JOptionPane.showMessageDialog (this,  "<html><body><p style='width: 280px;'>" + info + "</body></html>", "Teaching: " +title , JOptionPane.PLAIN_MESSAGE);
+  }
+  
+  /**
+   * This method is used to move the pathogen according to what keys the user pressed, but adding xVel and yVel to xLoc and yLoc respectivly.
+   * The first few if statements will determine the correct action to be taken, depending on whether or not the game has been won, is in progress, or has been lost. 
+   * The nested if statements (inside the big else) are used to reset xLoc or yLoc if they should not travel any further on the screen (when they are at the edge). It will also update the progress bar.
+   * @param e This object reference variable to ActionEvent is used to store the action that has been done.
+   */
+  public void actionPerformed (ActionEvent e)
+  {
+    if (time <121)
+      time++;
+    if (frame.getGameInfo ().getShouldTeach ())
+    {
+      if (time == 10) //pathogen info
+      {
+        displayPane (1);
+      }
+      else if (time == 120 && frame.getGameInfo ().getShouldTeachWbc ()) // when 1st WBC appears 
+      {
+        displayPane(2);
+        frame.getGameInfo ().setShouldTeachWbc (false);
+      }
+      else
+      {
+        if (bossAnimationCounter == 369) //when targetted cell has appeared
+        {
+          displayPane (3);
+        }
+      }
+    }
+    
+    if (pathogen.getHealth () <= 0)
+      level.setHasWon (2);
+    if (e.getActionCommand() != null && e.getActionCommand().equals ("Ok"))
+    {   
+      remove (ok);
+      hasStarted = true;
+      tm.start ();
+      requestFocusInWindow ();      
+    }
+    if (level.getHasWon () > 0)
+    {
+      if (e.getActionCommand() != null && (e.getActionCommand().equals ("Retry Level") || e.getActionCommand().equals ("Next Level") || e.getActionCommand().equals ("Main Menu")))
+      {
+        if (e.getActionCommand().equals ("Retry Level"))
+        {
+          removeAll ();
+          frame.restart (false);
+        }
+        else if (e.getActionCommand().equals ("Next Level"))
+        {
+          frame.getGameInfo ().setLevel (frame.getGameInfo ().getLevel () + 1);
+          frame.startGame (true);
+        }
+        else
+        {
+          frame.doneGame ();
+          revalidate ();
+        }
+        return;
+      }
+      if (level.getHasWon () == 1)
+        end (true);
+      else
+        end (false);
+    }
+    else
+    {
+      //setting the position of the pathogen
+      pathogen.setX (pathogen.getX () + pathogen.getXVel ());
+      pathogen.setY (pathogen.getY () + pathogen.getYVel ());
+      if (pathogen.getY () < 0)
+        pathogen.setY (0);
+      if (pathogen.getX () < 108)
+        pathogen.setX (108);
+      if (pathogen.getY () > 500)
+        pathogen.setY (500);
+      if (pathogen.getX () > 775 - pathogen.getBounds().getWidth ())
+        pathogen.setX (775 - (int) (pathogen.getBounds().getWidth ()));
+      
+      //progress bar update
+      counter++;
+      if (477-level.getTracker() >57 && counter % 6 == 0)
+        level.setTracker (1);
+      if ((level.getTracker ()-7) %59 == 0)
+        circles.add (476-level.getTracker ());
+      
+      repaint ();
+      level.update ();
+    }
+  }
+  
+  /**
+   * This method is used to reposition the pathogen to it's new location, based on user input.
+   * It will also update level specific graphics, as well as display the boss that the user will fight when necessary.
+   * 
+   * The main if statement is to determine that the game is still in progress and things should be updated.
+   * All the if statements inside the main if are used to determine what should be drawn for specific levels, or at a certain time, except for one, which is used 
+   * to determine what colour the health bar should be, depending on how low they are on health.
+   * 
+   * The for loop inside the first nested if is used to go through the guards of the pathogen in level 3, to determine which ones should be drawn. It starts at 0, and goes up to the size of guards.
+   * The next for loop is used to make an arc thicker. It starts at 0 and increases to 14, by increments of 1.
+   * The final for loop is used to draw the ammunition bars. It starts at 1, and ends at whatever the ammunition is.
+   * 
+   * The first for each loop is used to get and draw all the circles to be displayed on the progress bar.
+   * The next for each loop is used to display all the white blood cells falling down.
+   * The final for each loop is used to display the ammunition that is fired (mainly for if multiple shots are fired in quick sucession).
+   * 
+   * @param gr This object reference variable to Graphics is used to get graphics information.
+   * @param g This object reference variable to Graphics2D is used to draw the moving pathogen.
+   * 
+   * @param guards This object reference variable to ArrayList is used to store the body guards of the pathogen in level 3 (the parasite).
+   * @param boss2 This object reference variable to Boss is used to store the boss that the user will face.
+   * @param target This object reference variable to TargettedCell is used to store the cell that the user is to infect.
+   * @param projectiles This object reference variable to ArrayList is used to store the projectiles that the user will fire in level 3.
+   * 
+   * @param x This integer is used to go through all the guards of the pathogen (if the level selected was 3). 
+   * @param x This integer is used to help display the health bar to the user.
+   * @param y This integer is used help display the amount of ammunition the user still has (if the level selected was 2).
+   * @param circ This integer is used to store the y value of the circles to be drawn to display the progress of the user.
+   * @param c This object reference variable to Cell is used to store the (white blood) cell that is to be drawn.
+   * @param projectiles This object reference variable to Projectile is used to store the projectile that is to be drawn.
+   */
+  public void paintComponent (Graphics gr)
+  {
+    Graphics2D g = (Graphics2D) gr;
+    super.paintComponent(g);
+    if (hasStarted)
+    {
+      g.drawImage (background, 0, 0, this);
+      
+      if (level.getHasWon () == 0)
+      {
+        g.drawImage (pathogenPic, (int) (pathogen.getX ()), (int) (pathogen.getY ()), null); //pathogen
+        
+        g.setFont (new Font ("Agency FB", Font.BOLD, 25));
+        score = (int) (pathogen.getHealth () * difficultyFactor);  
+        g.setColor (Color.GREEN);
+        g.drawString ("Score: " + score, 10, 25);
+        
+        //parasite bodyguards
+        if (level instanceof Level3)
+        {
+          //  ArrayList <Cell> cells = level.getCells ();
+          ArrayList <Entity> guards = ((Parasite) (pathogen)).getParasites ();
+          for (int x = 0; x< guards.size (); x++)
+          {
+            if (guards.get(x).getX () != -1)
+              g.drawImage (miny, guards.get (x).getX (), guards.get (x).getY (), this);
+          }
+        }
+        
+        //health bar
+        g.drawImage (healthBar, 772, 492, this);
+        if (pathogen.getHealth() > 210)
+          g.setColor (Color.GREEN);
+        else if (pathogen.getHealth () > 130)
+          g.setColor (Color.YELLOW);
+        else
+          g.setColor (Color.RED);
+        for (int x = 0; x<14; x++)
+        {
+          g.drawArc(805+x, 510+x, 76-x*2, 76-x*2, 110, (int) (pathogen.getHealth ())); 
+        }
+        
+        //progress bar
+        g.drawImage (progressBar, 836,53,this);
+        g.setColor (new Color (22, 245, 213));
+        g.fillRect (839, 477-level.getTracker(), 6, level.getTracker ());
+        for (int circ: circles)
+        {
+          g.fillOval (859, circ, 8, 8);
+        }
+        
+        if (!level.canInfectTarget ())
+        {
+          //Drawing cells falling down
+          for (Entity c: level.getCells ())
+          {
+            g.drawImage (whiteBloodCell, (int) (c.getX ()), (int) (c.getY ()), this);
+          }
+          //level 1 - display increase immunity
+          if (level instanceof Level1)
+          {
+            g.setFont (new Font ("Agency FB", Font.BOLD, 18));
+            g.setColor (Color.BLUE);
+            if (((Level1) (level)).getHasIncreased() && immunityCounter <300)
+            {
+              g.drawString ("IMMUNITY INCREASED" , pathogen.getX()-13, pathogen.getY() - 8);
+            }
+            else 
+            {
+              immunityCounter = 0;
+              ((Level1) (level)).setHasIncreased (false);
+            }
+            immunityCounter++;
+          }
+          
+        }
+        else //then the user fights the boss
+        {
+          Boss boss2 = ((Boss)(level.getBoss ()));
+          TargettedCell target = (TargettedCell) (level.getCells (). get (0));
+          if (!level.getBossHasAnimated ())
+          {
+            boss2.setY (boss2.getY () + 1);
+            target.setY (target.getY () + 1);
+            
+            if (bossAnimationCounter == 370)
+              level.setBossHasAnimated (true);
+            else
+              bossAnimationCounter ++;
+          }
+          g.drawImage (boss, boss2.getX (), boss2.getY (), this);
+          g.drawImage (targetPic, target.getX (), target.getY (), this);
+          g.setColor (Color.GREEN);
+          g.drawRect (target.getX (), target.getY () + 100, (int) (target.getBounds ().getWidth ()), 10);
+          g.fillRect (target.getX (), target.getY () + 100, (int) (target.getHealth ()), 10);
+        }
+        
+        //for level 2
+        if (level instanceof Level2)
+        {
+          //Drawing Ammunition 
+          g.setColor (Color.GREEN);
+          g.drawImage (ammoBar, 8, 520, this);
+          if (((Bacteria)(pathogen)).getAmmo () > 0)
+          {
+            for (int y = 1 ; y < ((Bacteria)(pathogen)).getAmmo () +1 ; y++) //displaying ammo
+            {
+              g.fillRect (y*17-1, 529,14, 55);
+            }
+          }
+          else
+          {
+            g.setFont (new Font ("Agency FB", Font.BOLD, 20));
+            g.drawString ("" +  pathogen.getTimeLeft(), 53, 560);
+          }
+          
+          //Drawing the projectiles fired by Bacteria in level 2
+          ArrayList <Projectile> projectiles = ((Bacteria)(pathogen)).getProjectiles ();
+          for (Projectile projectile: projectiles)
+          {
+            g.drawImage (miny, projectile.getX (), projectile.getY (), this);
+          }
+        }
+      }
+    }
+    else
+      g.drawImage (controls, 0, 0, this);
+  }
+  
+  /**
+   * This helper method is used to check what options should be displayed, and whether the user should be congradulated or not.
+   * They will have the option to go on to the next level or retry if they failed. They can also go back to main menu.
+   * The if else statement is used to set the message to be displayed to the user, as well as the next level/retry level button.
+   * @param hasWon This boolean is used to send in whether the user has won or not.
+   * @param title This object reference variable to JLabel is used to display the whether the user has won.
+   * @param next This object reference variable to JButton is used to give the user the option to go to the next level, or retry if necessary.
+   * @param mainM This object reference variable to JButton is used to create the button that leads back to main menu.
+   */
+  private void end (boolean hasWon)
+  {
+    tm.stop ();
+    removeKeyListener (this);
+    repaint ();
+    JLabel title;
+    
+    JButton next;
+    JButton mainM = new JButton ("Main Menu");
+    GamePanel.setButtonCool (mainM, 20);
+    
+    GamePanel.layout.putConstraint (SpringLayout.SOUTH, mainM, -180, SpringLayout.SOUTH, this);
+    GamePanel.layout.putConstraint (SpringLayout.EAST, mainM, -300, SpringLayout.EAST, this);
+    
+    if (hasWon)
+    {
+      title = new JLabel ("You have won!");
+      next = new JButton ("Next Level");
+      HighScoreLoader h = new HighScoreLoader ();
+      HighScore score2 = new HighScore(frame.getGameInfo ().getName (), score, difficultyName, level.getName ());
+      if (h.canInsert (score2))
+        h.insert (score2);
+    }
+    else
+    {
+      title = new JLabel ("You have lost!");
+      next = new JButton ("Retry Level");
+    }
+    GamePanel.setButtonCool (next, 20);
+    mainM.addActionListener (this);
+    next.addActionListener (this);
+    GamePanel.setLabelCool (title, 70, 200, this, false);
+    if (!(level instanceof Level3) || hasWon == false)
+    {
+      GamePanel.layout.putConstraint (SpringLayout.SOUTH, next, -180, SpringLayout.SOUTH, this);
+      GamePanel.layout.putConstraint (SpringLayout.WEST, next, 300, SpringLayout.WEST, this);
+      add (next);
+    }
+    else
+    {
+      GamePanel.layout.putConstraint (SpringLayout.HORIZONTAL_CENTER, mainM, 0, SpringLayout.HORIZONTAL_CENTER, this);
+    }
+    add (mainM);
+    revalidate ();
+  }
+  
+  /*
+   * This method is used to reset how much the pathogen should move, when the key has been released.
+   * @param e This object reference to KeyEvent is used to get keyboard events.
+   */
+  public void keyReleased (KeyEvent e)
+  {
+    pathogen.setXVel (0);
+    pathogen.setYVel (0);
+  }
+  
+  /**
+   * This method overrides the method in KeyListener, to do nothing. 
+   * @param e This object reference variable to KeyEvent is used to detect actions when a key is typed, but it is not used in this method which is used to do nothing.
+   */
+  public void keyTyped (KeyEvent e)
+  {
+  }
+  
+  /**
+   * This method is used to send out miny bacteria when the user clicks somewhere on the screen in level 2.
+   * The if structure is used to determine if the Bacteria has the ability to send out miny bacteria. If so, then the miny bacteria are sent out when the user clicks on the screen in level2.
+   * @param e This object reference variable to MouseEvent is the default parameter for this method and isused to store the attributes of the mousePressed action.
+   * @param directions This array of integers is used to str
+   * @param moveX2 This variable is used to store the increment of the x position that will take place during the movement of the miny bacteria.
+   * @param moveY2 This variable is used to store the increment of the y position that will take place during the movement of the miny bacteria.
+   */ 
+  public void mousePressed (MouseEvent e)
+  { 
+    if (((Bacteria) (pathogen)).canFire ())
+    {
+      ((Bacteria) (pathogen)).setAmmo (((Bacteria) (pathogen)).getAmmo () - 1);
+      
+      int [] directions = CollisionDetection.getMoveDirections (pathogen.getBounds ().getCenterX (), e.getX(), pathogen.getBounds ().getCenterY (), e.getY(), 5 );
+      int moveX2 = directions [0];
+      int moveY2 = directions [1];
+      
+      ((Bacteria) (pathogen)).getProjectiles ().add (new Projectile ((int) (pathogen.getBounds ().getCenterX ()), (int) (pathogen.getBounds ().getCenterY ()), moveX2, moveY2));
+    }
+  }
+  
+  /**
+   * This method of MouseListener is defined to do nothing.
+   * @param e This object reference variable to MouseEvent is used to detect actions of the MouseListener (but nothing is detected in this method).
+   */ 
+  public void mouseClicked (MouseEvent e)
+  {}
+  
+  /**
+   * This method of MouseListener is defined to do nothing.
+   * @param e This object reference variable to MouseEvent is used to detect actions of the MouseListener (but nothing is detected in this method).
+   */ 
+  public void mouseExited (MouseEvent e)
+  {}
+  
+  /**
+   * This method of MouseListener is defined to do nothing.
+   * @param e This object reference variable to MouseEvent is used to detect actions of the MouseListener (but nothing is detected in this method).
+   */ 
+  public void mouseEntered (MouseEvent e)
+  {}
+  
+  /**
+   * This method of MouseListener is defined to do nothing.
+   * @param e This object reference variable to MouseEvent is used to detect actions of the MouseListener (but nothing is detected in this method).
+   */ 
+  public void mouseReleased (MouseEvent e)
+  {}
+  
+  /**
+   * This method is used to start the updating of the game screen.
+   */ 
+  public void startTimer ()
+  {
+    tm.start ();
+    pathogen.resume ();
+  }
+}
