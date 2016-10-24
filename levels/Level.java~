@@ -1,0 +1,383 @@
+package levels;
+import java.util.*;
+import cell.*;
+import game.*;
+import game.CollisionDetection;
+
+/**
+ * This class is used to create the level that will be displayed in the background of the game.
+ * Features of Version 2.0:<br>
+ * This class was created, but it is only set up to be coded, it does not do anything yet.
+ * Time spent on this class: 10 min. <br>
+ * Features of Version 3.0:<br>
+ * This class was completely changed (all the methods are new), now the cells that are spawned are stored in a list, and they fall down. 
+ * Time spent on this class: 1 hour (additive to previous versions). <br>
+ * Features of Version 4.0: <br>
+ * This class was modified a lot to include more processing that was originally in Game. It will not add cells, update positioning, 
+ * and add a boss when necessary.
+ * Time spent on this class (additive to previous versions): 2 hours, 30 minutes. <br>
+ * @author Salar Hosseini & Sophia Weng
+ * @version 5.0, June 12, 2014
+ */ 
+public class Level
+{
+  /**
+   * This object reference variable to ArrayList (Generic type Cell) is used to store all the cells that appear in the game besides the pathogen.
+   */ 
+  private ArrayList <Entity> cells = new ArrayList <Entity> ();
+  /**
+   * This integer is used to store a number that increments by 1 every time cells fall down, to determine when the next antibody should spawn.
+   */ 
+  private int counter;
+  /**
+   * This integer is used to store the position of the progress bar in the game.
+   */ 
+  private int tracker = 0;
+  /**
+   * This boolean variable is used to store true if antibodies should be spawning, and false if they should not.
+   */ 
+  private boolean shouldAdd = true;
+  /**
+   * This object reference variable is used to store the boss that the user is to face.
+   */
+  Boss boss;
+  /**
+   * This object reference variable is used to store the pathogen that the user will control in the game.
+   */
+  private Pathogen pathogen;
+  /**
+   * This boolean is used to store whether the user has started to try to infect the targetted cell or not.
+   */
+  private boolean isTargettingCell;
+  /**
+   * This boolean is used to determine whether the boss has entered the screen or not yet.
+   */
+  private boolean bossHasAnimated;
+  /**
+   * This object reference variable to String is used to store a name for the level.
+   */ 
+  String name;
+  /**
+   * This integer is used to determine whether or not the game is in progress (hasWon = 0), the game has been won (1) or if it has been lost (hasWon = 2).
+   */
+  public int hasWon;
+  /**
+    * This object reference variable to GameInfo is used to access data needed across multiple classes.
+    */
+  GameInfo info;
+  
+  /**
+   * This is the class constructor which will assign the JPanel object to the instance variable storing the JPanel object reference.
+   * It will also store the pathogen that the user is to be controlling.
+   * @param name This object reference variable to String is used to store a name for the level. 
+   * @param pathogen This object reference variable to Pathogen is used to store the pathogen that the user will control.
+   * @param info This object reference variable to GameInfo is used to store the data class that has information needed across multiple classes.
+   */ 
+  public Level (String name, Pathogen pathogen, GameInfo info)
+  {
+    this.info = info;
+    this.name = name;
+    this.pathogen = pathogen;
+  }
+  
+  /**
+   * This mutator method is used to alter the state of the game (playing, won, or loss).
+   * @param hasWon This integer is used to store an integer which represents the state of the game (playing, won, or loss).
+   */ 
+  public void setHasWon (int hasWon)
+  {
+    this.hasWon = hasWon;
+  }
+  
+  /**
+   * This accessor method is used to get the state of the game (playing, won, or loss).
+   * @return int This integer stores a number representing the state of the game (playing, won, or loss).
+   */ 
+  public int getHasWon ()
+  {
+    return hasWon;
+  }
+  
+  /**
+   * This accessor method is used to get the name of the level that the user is playing on.
+   * @return String The name of the level is returned.
+   */ 
+  public String getName ()
+  {
+    return name;
+  }
+  
+  /**
+   * This accessor method returns the ArrayList of cells in the game (all the cells falling down that are present on the screen).
+   * @return ArrayList<Cell> This is the list of cells in the game that appear on the screen (besides the pathogen).
+   */ 
+  public ArrayList <Entity> getCells ()
+  {
+    return cells;
+  }
+  
+  /**
+   * This accessor method is used to return the tracker of the progress bar of the game as an integer.
+   * @return int The tracker of the progress bar is returned.
+   */ 
+  public int getTracker ()
+  {
+    return tracker;
+  }
+  
+  /**
+   * This accessor method is used to return the pathogen that the user is controlling
+   * @return Pathogen The pathogen the user is controlling.
+   */
+  public Pathogen getPathogen ()
+  {
+    return pathogen;
+  }
+  
+  /**
+   * This method is used to get rid of any cells in the arraylist of cells that have moved past the visible screen.
+   * The for loop is used to move through the list of cells and find any that need to be removed. The for loop variable starts at 0, increments by 1 until it is no longer less than the total number of cells in the list.
+   * The if statement (nested within the for loop) is used to check if the cell should still be on the list (if it is still on the screen). If not, that cell is removed from the list.
+   * @param x This integer is a for loop variable that stores the position of the iterations in the for loop. It starts at 0, and increments by 1 until it is no longer less than the total number of cells.
+   */ 
+  public void filterCells ()
+  {
+    for (int x = 0; x < cells.size (); x++)
+    {
+      if (cells.get(x).getY () > 600)
+      {
+        cells.remove (x);
+        x--;
+      }
+    }
+  }
+  
+  /**
+   * This method is used to lower the user's health when they have hit an antibody, as well as update locations of entities.
+   * It will also call methods to add more cells when necessary, as well as remove cells that are no longer needed.
+   * The main if else is to determine whether or not the user is able to (try to) infect the targetted cell. If they are unable, that
+   * means that they are still in game, which means that more white blood cells may be added/filtered. Otherwise, it will update
+   * the boss antibody to follow the user around.
+   * The nested if within the biggest if statement is used to check if the target should be drawn yet (if enough antibodies have spawned). If so, the target is drawn.
+   * The for each loop is used to go through all the antibodies. The if inside is to see if the user has collided with any of them. If they have, 
+   * their health is lowered, and the antibody is pushed a little distance away.
+   * The if statement within the else of the largest if stucture (let this be called if statment 5) is used to check if the boss has animated yet (if it has come down into the screen). If so, then the boss can follow the pathogen.
+   * The first if statement within if statement 5 is used to check if the boss and the pathogen have collided. If so, the pathogen takes damage and the two entities move away from each other.
+   * The second if statement within if statement 5 is used to check if the target and the pathogen have collided. If so, the target takes damage.
+   * @param directions This integer array is used to store the direction the antibody should be moved.
+   * @param directions This integer array is used to store the direction the boss should be moved.
+   * @param c This object reference variable to Cell is a for each loop variable that is used to store the Cells stored in the ArrayList of Cells and check for collisions.
+   */
+  public void update ()
+  {
+    
+    if (!isTargettingCell)
+    {
+      if (shouldDrawTarget ())
+        addTarget ();
+      filterCells ();
+      moveCells ();
+      
+      for (Entity c: cells)
+      {
+        if (CollisionDetection.hasCollided (c.getBounds (), pathogen.getBounds ()))
+        {
+          if (pathogen.getHealth () > 0)
+            pathogen.setHealth (4);
+          
+          int [] directions = CollisionDetection.getMoveDirections (c.getBounds (). getCenterX (), pathogen.getBounds (). getCenterX (), c.getBounds (). getCenterY (), pathogen.getBounds (). getCenterY (), 5);
+          setPosition (directions, 0, c);
+        }
+      }
+    }
+    else
+    {
+      if (bossHasAnimated)
+      {   
+        int[] directions = CollisionDetection.getMoveDirections (boss.getX (), pathogen.getBounds (). getCenterX (), boss.getY (), pathogen.getBounds (). getCenterY (), 2); 
+        setPosition (directions, 1, null);     
+        if (CollisionDetection.hasCollided (boss.getBounds (), pathogen.getBounds ()))
+        {
+          if (pathogen.getHealth () > 0)
+            pathogen.setHealth (4);
+          setPosition (directions, 2, null);
+          setPosition (directions, 3, null);
+          if (pathogen instanceof Parasite)
+          {
+            setPosition (directions, 4, null);
+          }
+        }
+        if (CollisionDetection.hasCollided (cells.get (0).getBounds (), pathogen.getBounds ()))
+          damageTarget ();
+      }
+    }
+  }
+  
+  /**
+   * This method is used to complete a portion of code that is repeated more than once. It will lower the health of the target and check if the user has one.
+   * The if statement is used to check if the health of the target is less than or equal to 0 which would signify that the user has won (the health can be less than because of the damage it takes, but on the screen it will never show a negative health).
+   */ 
+  public void damageTarget ()
+  {
+    ((TargettedCell) (cells.get (0))).setHealth (2);
+    if (((TargettedCell) (cells.get (0))).getHealth () <= 0)
+      setHasWon (1);
+  }
+  
+  /**
+   * This method is used to set the new position of an entity, based on the directions provided.
+   * The if structure is used to determine how the new position should be set depending on a integer type passed in.
+   * The nested if statement is used to determine whether or not the boss should be pushed towards the pathogen or away from it depending on the situation (given by type variable).
+   * @param directions This integer array is used to store the directions the entity will move in.
+   * @param type This integer will determine how the new position should be obtained.
+   * @param e This object reference to Entity is used to store the entity to be moved.
+   * @param moveX2 This integer is used to store the x amount that the entity is to be moved.
+   * @param moveY2 This integer is used to store the y amount that the entity is to be moved.
+   */
+  public void setPosition (int [] directions, int type, Entity e)
+  {
+    int moveX2 = directions [0];
+    int moveY2 = directions [1];
+    if (type == 0)
+    {
+      e.setX (e.getX () - moveX2);
+      e.setY (e.getY () - moveY2);
+    }
+    else if (type == 2)
+    {
+      pathogen.setX (pathogen.getX () + moveX2);
+      pathogen.setY (pathogen.getY () + moveY2);
+    }
+    else if (type == 4)
+    {
+      int moveX = directions [0];
+      int moveY = directions [1];
+      for (Entity ent: ((Parasite) getPathogen ()).getParasites ())
+      {
+        if (ent.getX () != -1 && pathogen.getX () > 0 && pathogen.getX ()< 775 - pathogen.getBounds().getWidth () && pathogen.getY () > 108 && pathogen.getY () < 500)
+        {
+          ent.setX (ent.getX () + moveX);
+          ent.setY (ent.getY () + moveY);
+        }
+      }
+    }
+    else 
+    {
+      if (type == 3)
+      {
+        moveX2 *= 10 * -1;
+        moveY2 *= 10 * -1;
+      }
+      boss.setX (boss.getX () + moveX2);
+      boss.setY (boss.getY () + moveY2);
+    }
+  }
+  
+  /**
+   * This return method is used to return the boss antibody.
+   * @return Boss This will return the boss that the user is to face.
+   */
+  public Boss getBoss ()
+  {
+    return boss;
+  }
+  
+  /**
+   * This return method is used to return whether or not the boss has appeared on the screen or not.
+   * @return boolean It will return whether the boss has animated or not.
+   */
+  public boolean getBossHasAnimated ()
+  {
+    return bossHasAnimated;
+  }
+  
+  /**
+   * This mutator method is used to change whether or not the boss has been animated.
+   * @param bossHasAnimated This boolean is used to set the new value of if the boss has been animated.
+   */
+  public void setBossHasAnimated (boolean bossHasAnimated)
+  {
+    this.bossHasAnimated = bossHasAnimated;
+  }
+  
+  /**
+   * This mutator method is used to alter the tracker of the progress bar by incrementing it by a certain value.
+   * @param increment This integer is used to store the incrementation of the position of the tracker.
+   */ 
+  public void setTracker (int increment)
+  {
+    tracker += increment;
+  }
+  
+  /**
+   * This return method is used to check if the target should be drawn. It should be drawn when the progress bar of the level reaches the top.
+   * The if statement is used to check if the position of the progress bar has reached the top of the entire bar yet. It so, true is returned.
+   * @return boolean True or false is returned depending on if the target should be drawn yet (true if should be).
+   */ 
+  private boolean shouldDrawTarget ()
+  {
+    if (cells.size () == 0 && shouldAdd == false)
+      return true;
+    if (tracker == 400)
+      shouldAdd = false;
+    return false;
+  }
+  
+  /**
+   * This method is used to move all of the cells besides the pathogen down.
+   * The for each loop is used to move through every Object in the List and move its position down by 1.
+   * The if statement is used to check if the counter of cells moving down reaches a certain value. When it reaches that value, then another antibody is added.
+   * @param c This for loop variable is an object reference to Cell which stores the Cell that is in the current iteration of the for each loop.
+   */ 
+  public void moveCells ()
+  {
+    if (!isTargettingCell)
+    {
+      for (Entity c: cells)
+      {
+        c.setY (c.getY () + 1);
+      }
+      counter ++;
+      int spawnTime;
+      if (info.getDifficulty () == 1)
+        spawnTime = 50;
+      else if (info.getDifficulty () == 2)
+        spawnTime = 25;
+      else
+        spawnTime = 17;
+      if (counter == spawnTime && shouldAdd)
+      {
+        addAntibody ();
+        counter = 0;
+      }
+    }
+  }
+  
+  
+  /**
+   * This method is used to add antibodies to the list of cells.
+   */ 
+  public void addAntibody ()
+  {
+    cells.add (new WhiteBloodCell ());
+  }
+  
+  /**
+   * This return method is used to get whether or not the user is at the final stage of a level.
+   * @return boolean It returns whether the user is on the final stage of level or not.
+   */
+  public boolean canInfectTarget ()
+  {
+    return isTargettingCell;
+  }
+  
+  /**
+   * This method is used to add the targetted cell, as well as the boss.
+   */ 
+  private void addTarget ()
+  {
+    isTargettingCell = true;
+    boss = new Boss ();
+    cells.add (new TargettedCell ());
+  }
+}
