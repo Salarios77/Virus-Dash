@@ -1,0 +1,91 @@
+package cell;
+import java.awt.Rectangle;
+
+/**
+ * This data class is used to store the attributes of the moving projectiles in the game (things without health).
+ * Features of Version 4.0:
+ * This entire class was created to store attributes of projectiles (the miny bacteria, and the boss in the game). The attributes stored are the increments to the x and y positions of the projectile during it's movement.
+ * Time spent on this class: 25 min.
+ * @author Salar Hosseini & Sophia Weng
+ * @version 4.0, June 6, 2014
+ */ 
+public class Projectile extends Entity
+{
+  /**
+   * This integer stores the increment in the x position that will be applied to the projectile when it is moving.
+   */ 
+  private int moveX2;
+  /**
+   * This integer stores the increment in the y position that will be applied to the projectile when it is moving.
+   */ 
+  private int moveY2;
+  
+  /**
+   * This is one of the overloads for the class constructor which accepts four parameters (the x and y positions, and the x and y movements).
+   * @param x This integer is used to store the x position of the Entity.
+   * @param y This integer is used to store the y position of the Entity.
+   * @param moveX This integer is used to store the increment in the x position of the Entity.
+   * @param moveY This integer is used to store the increment in the Y position of the Entity.
+   */ 
+  public Projectile (int x, int y, int moveX, int moveY)
+  {
+    super (x,y);
+    moveX2 = moveX;
+    moveY2 = moveY;
+  }
+  
+  /**
+   * This is one of the overloads for the class constructor which only accepts two parameters (the x and the y positions).
+   * @param x This integer is used to store the x position of the Entity.
+   * @param y This integer is used to store the y position of the Entity.
+   */ 
+  public Projectile (int x, int y)
+  {
+    super (x,y);
+  }
+  
+  /**
+   * This method is used to set the the increment in the x position that will be applied to the projectile when it is moving.
+   * @param moveX2 This integer stores the new increment in the x position that will be applied to the projectile when it is moving.
+   */ 
+  public void setMoveX2 (int moveX2)
+  {
+    this.moveX2 = moveX2;
+  }
+  
+  /**
+   * This method is used to set the the increment in the y position that will be applied to the projectile when it is moving.
+   * @param moveY2 This integer stores the new increment in the y position that will be applied to the projectile when it is moving.
+   */ 
+  public void setMoveY2 (int moveY2)
+  {
+    this.moveY2 = moveY2;
+  }
+  
+  /**
+   * This accessor method is used to get the increment in the x position that will be applied to the projectile when it is moving.
+   * @return int This is the integer that will increase the x position by a specific amount when moving.
+   */ 
+  public int getMoveX2 ()
+  {
+    return moveX2;
+  }
+  
+  /**
+   * This accessor method is used to get the increment in the y position that will be applied to the projectile.
+   * @return int The is the integer that will increase the y position by a specific amount when moving.
+   */ 
+  public int getMoveY2 ()
+  {
+    return moveY2;
+  }
+  
+  /**
+   * This method returns the boundaries of the Projectile.
+   * @return Rectangle (The rectangle surrounding the Projectile).
+   */ 
+  public Rectangle getBounds ()
+  {
+    return new Rectangle (getX(), getY(), 10, 10);
+  }
+}

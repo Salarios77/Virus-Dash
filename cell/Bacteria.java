@@ -1,0 +1,85 @@
+package cell;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+
+/**
+ * This class is used to create the Bacteria pathogen which has the ability to multiply.
+ * Features of Version 2.0: This entire class was created. The accessor and mutator methods were created for the bacteria.
+ * Time spent on this class: 20 minutes.
+ * Features of Version 4.0: This entire class was re-modeled to have new features for the Bacteria pathogen. All the methods were created. The bacteria can send out duplicates of itself to attack and stall antibodies.
+ * Time spent on this class: 45 minutes (additive to previous versions).
+ * @author Salar Hosseini & Sophia Weng
+ * @version 5.0, June 12, 2014
+ */ 
+public class Bacteria extends Pathogen
+{
+  /**
+   * This integer is used to store the the amount times that the bacteria can send out minion bacteria before the cooldown of this ability.
+   */ 
+  private int ammo;
+  /**
+   * This object reference variable to ArrayList (generic type of Projectile) is used to store the different "mini bacteria" that the bacteria can send out to attack the antibodies.
+   */ 
+  private ArrayList<Projectile> projectiles = new ArrayList <Projectile> ();
+  
+  /**
+   * This is the class constructor which is used to assign values to the instance variables and initialize the variables in the super class (the immunity).
+   */ 
+  public Bacteria ()
+  {
+    super (1.5);
+    ammo = 5;
+  }
+  
+  /**
+   * This accessor method is used to return (get) the list of projectiles (miny bacteria) that are being sent out.
+   * @return ArrayList <Projectile> This is the ArrayList of the Projectile objects which store the attributes of the miny bacteria.
+   */ 
+  public ArrayList <Projectile> getProjectiles ()
+  {
+    return projectiles;
+  }
+  
+  /**
+   * This accessor method is used to check if the bacteria can send out its miny bacteria by checking the amount of times that it can multiply into them (ammo) (if it has more than 0 tries left, true will be returned).
+   * The if statement is used to check if the bacteria can create any more miny bacteria to send out (if the user can use the ability and they are not in a cooldown). If so, true is returned.
+   * @return boolean The boolean returned represents if the user can fire any miny bacterias (true means they can).
+   */ 
+  public boolean canFire ()
+  {
+    if (ammo > 0)
+      return true;
+    return false;
+  }
+  
+  /**
+   * This accessor method is used to get the amount of times that the user can still send out miny bacteria.
+   * @return int The integer returned represents the number of times that the user can use the ability of sending out the miny bacteria.
+   */ 
+  public int getAmmo ()
+  {
+    return ammo;
+  }
+  
+  /**
+   * This mutator method is used to set the amount of times the ability of the bacteria can be used.
+   * The if statement is used to check if the user can no longer use the Bacteria's ability. If so, then a cooldown is started for the ability.
+   * @param ammo2 This integer stores the new amount of times the ability of the bacteria can be used.
+   */ 
+  public void setAmmo (int ammo2)
+  {
+    ammo = ammo2;
+    if (ammo == 0)
+      timer ();
+  }
+  
+  /**
+   * This method is used to return the perimeter of the Bacteria.
+   * @return Rectangle The rectangle returned is a representation of an imaginary rectangle around the Bacteria which is used to check for collision.
+   */ 
+  public Rectangle getBounds ()
+  {
+    return new Rectangle (getX ()+5, getY ()+5, 37, 155);
+  }
+}
+

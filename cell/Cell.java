@@ -1,0 +1,54 @@
+package cell;
+
+/**
+ * This class is used to create the cells that appear in the game.
+ * Features of version 2.0: All accessors and mutator methods of the data fields are created along with the constructor.
+ * Number of time spent on this class: 30 min
+ * Features of version 4.0: color and health data fields were removed along with their accessor and mutator methods.
+ * Time spent on this class: 45 min (additive to previous versions).
+ * @author Salar Hosseini & Sophia Weng
+ * Features of version 5.0: The health was changed to never go below 0 (in setHealth method).
+ * Time spent on this class: 55 min (additive to previous versions).
+ * Time spent on this class: 
+ * @version 5.0, June 12, 2014
+ */ 
+public class Cell extends Entity
+{
+  /**
+   * This private double is used to store the health of the cell.
+   */ 
+  private double health;
+  
+  /**
+   * This constructor is used to create an instance of a cell, with a specified health, colour and name.
+   * @param health2 This double is used to store the health to be assigned to the cell.
+   * @param x This integer is used to store the x position of the cell.
+   * @param y This integer is used to store the y position of the cell.
+   */ 
+  public Cell (double health2, int x, int y)
+  {
+    super (x, y);
+    health = health2;
+  }
+  
+  /**
+   * This method is used to change health by deducting the amount of damage inflicted on the current health.
+   * The if statement is used to check if the health of the cell is below 0 which is impossible in reality, so if that happens due to a lot of damage taken, the health is changed to zero.
+   * @param damage This double is used to store the amount of damage inflicted on the cell, to be deducted.
+   */ 
+  public void setHealth (double damage)
+  {
+    health -= damage;
+    if (health < 0)
+      health = 0;
+  }
+  
+  /**
+   * This method is used to return the cell's current health.
+   * @return double The health of the pathogen is returned.
+   */ 
+  public double getHealth ()
+  {
+    return health;
+  }
+}

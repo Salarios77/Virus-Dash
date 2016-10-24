@@ -1,0 +1,121 @@
+package cell;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+
+/**
+ * This class is used to create the Parasite pathogen.
+ * Features of Version 2.0: This entire class was created. The accessor and mutator methods were created for parasite.
+ * Time spent on this class: 20 minutes. 
+ * Features of Version 4.0: The ability for the parasite to spawn duplicate bodyguards of itself was added (insertBodyguard () method).
+ * Time spent on this class: 1 hour 20 min (additive to previous versions).
+ * Features of Version 5.0: The bodyGuards ArrayList is now and ArrayList of Entity Objects.
+ * Time spent on this class: 1 hour 30 min (additive to previous versions).
+ * @author Salar Hosseini & Sophia Weng
+ * @version 5.0, June 12, 2014
+ */ 
+public class Parasite extends Pathogen
+{
+  /**
+   * This ArrayList of Entities is used to store the bodyguards of the parasite. 
+   */ 
+  private ArrayList <Entity> bodyGuards = new ArrayList <Entity> ();
+  
+  /**
+   * This is the class constructor which is used to assign values to the instance variables and initialize the variables in the super class.
+   * The for loop is used to add 5 un active bodyguards do the ArrayList of bodyguards.
+   * @param x This for loop variable is used to keep track of how many un active bodyguards are added to the list of bodyguards. It starts at 0, and increments by 1 until it is no longer less than 5 (the max number of bodyguards).
+   */ 
+  public Parasite ()
+  {
+    super (1);
+    for (int x = 0; x<5; x++)
+    {
+      bodyGuards.add (new Entity (-1, -1));
+    }
+  }
+  
+  /**
+   * This accessor method is used to get the list of bodyguards of the parasite.
+   * @return ArrayList <Entity> The list of bodyguards is returned.
+   */ 
+  public ArrayList<Entity> getParasites ()
+  {
+    return bodyGuards;
+  }
+  
+  /**
+   * This method is used to give the parasite another bodygaurd if it needs another.
+   * The for loop is used to go through the list of bodyguards and find the first bodyguard that is not active (coordinates of -1, -1 a.k.a not on screen). After that is found, a the bodyguard at the position in the list is updated to become active.
+   * The first if statement is used to check if the bodyguard at the position of the list (kept track by the for loop) is not active on the screen. If so, that bodyguard is made active (put on screen).
+   * The nested if structure is used to check which position in the list the bodyguard must be made active at (which bodyguard/ where beside the pathogen). Depending on where it is in the list, the one that is made active is shown on the screen.
+   * The most nested if structures (there are 2 of these) check to see (again) which positino in the list the bodyguard must be made active at. Depending on the position, the bodyguard of a specific spot is made active.
+   * @param bodyGuard This object reference variable to Entity stores the current bodyguard being examined in the for loop iterations.
+   * @param x This is the for loop variable which keeps track of the iterations of the for loop/ which bodyguard is being examined. It starts at 0, and increments by 1, until it is no longer smaller than the size of the bodygaurds list.
+   */ 
+  public void insertBodyguard ()
+  {
+    Entity bodyGuard;
+    
+    for (int x = 0; x < bodyGuards.size (); x++)
+    {
+      if (bodyGuards.get(x).getX () == -1)
+      {
+          bodyGuard = bodyGuards.get (x);
+        if (x == 3 || x == 4)
+        {
+          bodyGuard.setY (getY () + 15);
+          if (x == 3)
+            bodyGuard.setX (getX () - 55);
+          else
+            bodyGuard.setX (getX () + 95);
+        }
+        else if (x == 1 || x == 2)
+        {
+          bodyGuard.setY (getY () - 30);
+          if (x == 1)
+            bodyGuard.setX (getX () - 32); 
+          else
+            bodyGuard.setX (getX () + 72); 
+        }
+        else 
+        {
+          bodyGuard.setY (getY () - 50);
+          bodyGuard.setX (getX () + 20);
+        }
+        break;
+      }
+    }
+    timer (2);
+  }
+  
+  /**
+   * This method is used to determine whether the parasite can duplicate or not (returns either true or false, depending on whether or not it can duplicate).
+   * The for each loop is used to go through the list of body guards and count how many are active.
+   * The first if statement (nested) is used to check if the body guard being checked by the for loop is active or not. If so, a counter is increased.
+   * The next if statement (not nested) is used to check if the amount of time in the cooldown for a bodyguard is 0 and there are not already 5 guards. If so, true is returned.
+   * @param numGuards This integer is used to store and count how many active bodyguards the parasite currently has.
+   * @param e This object reference variable to Entity is a for each loop variable which is used to go through the list of bodyguards.
+   * @return boolean - returns true if can duplicate, returns false if cannot duplicate.
+   */ 
+  public boolean canDuplicate ()
+  {
+    int numGuards = 0;
+    for (Entity e: bodyGuards)
+    {
+      if (e.getX () != -1)
+        numGuards ++;
+    }
+    if (getTimeLeft () == 0 && numGuards < 5)
+      return true;
+    return false;
+  }
+  
+  /**
+   * This method is used to get the perimeter of the parasite for collision detection purposes.
+   * @return Rectangle The perimeter of the parasite is returned.
+   */ 
+  public Rectangle getBounds ()
+  {
+    return new Rectangle (getX (), getY (), 95, 87);
+  }
+}
