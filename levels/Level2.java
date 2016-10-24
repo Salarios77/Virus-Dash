@@ -1,0 +1,121 @@
+package levels;
+import javax.swing.JPanel;
+import cell.*;
+import game.*;
+import java.util.ArrayList;
+
+/**
+ * This class is used to draw the second level that the user may choose to play on.
+ * Features of Version 2.0: <br>
+ * This class was created, but it is only set up to be coded, it does not do anything yet.
+ * Time spent on this class: 10 min. <br>
+ * Features of Version 3.0: <br>
+ * This class was re-modeled since the super class was changed. The addAntibody () method was added to override the super classes's method.
+ * Time spent on this class: 20 min (additive to previous versions). <br>
+ * Features of Version 4.0: <br>
+ * This class has been modified to include processing that was originally found in Game. It will now update
+ * projectiles that the user can fire, and do necessary actions if the projectiles hit an antibody.
+ * Time spent on this class (additive to previous versions): 20 min. <br>
+ * @author Salar Hosseini & Sophia Weng
+ * @version 4.0, June 6, 2014
+ */ 
+public class Level2 extends Level
+{
+  /**
+   * This integer is a for loop variable which stores the iteration of the for loop that the for loop is on while it is running. It starts at 0, increments by 1 until it is no longer smaller than the number of projectiles fired.
+   */ 
+  private int x;
+  
+  /**
+   * This is the class constructor which will assign JPanel object to the instance variable as well as the pathogen the user is controlling.
+   * @param panel This object reference variable to JPanel stores the JPanel that the level will be drawn on.
+   * @param pathogen This object reference variable to Pathogen will store the pathogen that the user will control.
+   */ 
+  public Level2( Pathogen pathogen, GameInfo info)
+  {
+    super ("Bacteria", pathogen, info);
+  }
+  
+  /**
+   * This method is used to do all the updates the main update (in level) does, as well as reset the ammunition, when
+   * necessary, and update it.
+   * The first if statement is to check that any projectiles have actually been fired. If it has, the following will run:
+   * The for loop is used to go through all the projectiles the user has launched and update their locations. 
+   * The if statement inside the for loop is used to remove the projectile from the list if it has gone off the screen. 
+   * The nested if within that statement is used to check all of the values in projectiles (necessary due to the way ArrayLists work).
+   * If the projectiles do not need to be removed (are not at the edge of the screen), it will systematically check if there has been any collision (if the target is not yet on the screen)
+   * using a for loop that starts at 0 and increments by 1 until it is equal to the size of the size of cell, between the projectiles and the antibodies. If there are, it will remove both entities.
+   * If the target is on the screen, then an if statement is used to check if there is a collision between the projectile and the boss/ target. If with boss, projecitle is removed, if with target, target is damaged.
+   * @param projectiles This object reference variable to ArrayList is used to store the projectiles the pathogen the user is controlling can fire.
+   * @param projectile This object reference variable to Projectile is used to store the projectile that is being moved.
+   * @param cells This object reference variable to ArrayList is used to store the antibodies.
+   * @param x This integer is used to go through all the projectiles that the user has launched. It will start at 0 and increment by 1 until it is the same as the size of the projectile.
+   * @param c This integer is used to reference the cell at the c value in the cell ArrayList. It will start at 0 and increment by 1 until it is the same as the size of cell.
+   */
+  public void update ()
+  {
+    super.update ();
+    if (!(((Bacteria) (getPathogen ())).canFire ()) && getPathogen ().getTimeLeft () == 0)
+      ((Bacteria) (getPathogen())).setAmmo (5);
+    
+    ArrayList <Projectile> projectiles = ((Bacteria)(getPathogen ())).getProjectiles ();
+    if (projectiles.size () != 0)
+    {
+      Projectile projectile;
+      ArrayList <Entity> cells;
+      for (x = 0; x<projectiles.size (); x++)
+      {
+        projectile = projectiles.get (x);
+        projectile.setX(projectile.getX() + projectile.getMoveX2 ());
+        projectile.setY(projectile.getY() + projectile.getMoveY2 ());
+        
+        if (projectiles.get(x).getY() < 0  || projectiles.get(x).getY() > 650 || projectiles.get(x).getX() < 108 || projectiles.get(x).getX() > 775)
+        {
+          projectiles.remove (x);
+          if (x > -1)
+            x--;
+        }
+        else
+        {
+          cells = getCells ();
+          if (!canInfectTarget ())
+          {
+            for (int c = 0; c<cells.size (); c++)
+            {
+              if (CollisionDetection.hasCollided (cells.get (c).getBounds (), projectile.getBounds ()))
+              {
+                cells.remove (c);
+                removeProjectile (projectiles);
+                break;
+              }
+            }
+          }
+          else
+          {
+            if (CollisionDetection.hasCollided (getBoss ().getBounds (), projectile.getBounds ()))
+              removeProjectile (projectiles);
+            else
+            {
+              if(CollisionDetection.hasCollided (cells.get (0).getBounds (), projectile.getBounds ()))
+              {
+                damageTarget ();
+                removeProjectile (projectiles);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * This helper method is used to remove a projectile from the list of projectiles. 
+   * The if statement is used to check if the for loop variable is above the value of -1
+   */ 
+  private void removeProjectile (ArrayList <Projectile> projectiles)
+  {
+    projectiles.remove (x);
+    if (x > -1)
+      x--;
+  }
+}
