@@ -1,29 +1,12 @@
-Copyright Lupus Tech. 2014
+# Virus Dash - PC Game - Lupus Tech 2014
+A biology-action game where users can learn more about the activities of pathogens in the blood stream by controlling them to dodge and shoot incoming antibodies with accurate collision detection.
 
-_______________________________________________________________
+## Features 
+- Several different pathogen types with corresponding levels and difficulties for each one
+- Simple mouse and keyboard controls
+- Shows past high scores (saved on device) which can be printed 
+- Straightforward navigation through a JFrame window
 
-Virus Dash
-Source Code Version 5.0
-for Microsoft Windows
-
-System Requirements: 
-Windows XP or any other version of Windows released after that.
-Any graphics card released during or after 2008.
-Any processor released during or after 2008.
-A working printer (if you would like to print).
-150 mb free memory.
-
-_______________________________________________________________
-
-General Notes
-
-The game's processing speed depends on the processor used to run it.
-_______________________________________________________________
-
-Copyright
-
-Copyright 2014 Lupus Tech. All rights reserved.
-Virus Dash and its use are subject to a license agreement and are also
-subject to copyright, trademark, patent and/or other laws. All pictures, 
-ideas and names are trademarks and copyright.Further information is 
-provided in the user manual.
+## System Requirements:
+- Windows XP or other following versions of Windows
+- 150 Mb of free memory
